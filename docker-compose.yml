@@ -1,0 +1,19 @@
+version: '3.2'
+services:
+
+  dramatiq:
+    build: .
+    depends_on:
+      - rabbit
+    links:
+      - rabbit
+
+  rabbit:
+      hostname: rabbit
+      image: rabbitmq:latest
+      environment:
+        - RABBITMQ_DEFAULT_USER=guest
+        - RABBITMQ_DEFAULT_PASS=guest
+      ports:
+        - "5671:5672"
+        - "4000:15672"
