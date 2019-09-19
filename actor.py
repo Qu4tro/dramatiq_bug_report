@@ -1,12 +1,5 @@
 import dramatiq
-import requests
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
-
-
-def wc(url):
-    response = requests.get(url)
-    count = len(response.text.split(" "))
-    print(f"There are {count} words at {url!r}.")
 
 
 broker1 = RabbitmqBroker(
@@ -16,22 +9,21 @@ broker1 = RabbitmqBroker(
     connection_attempts=5,
     blocked_connection_timeout=30,
 )
-# For it to work, just uncomment next line
-# dramatiq.broker.set_broker(broker1)
 
+broker2 = RabbitmqBroker(
+    host="rabbit",
+    port=5672,
+    heartbeat=5,
+    connection_attempts=5,
+    blocked_connection_timeout=30,
+)
 
-class WordCounter(dramatiq.GenericActor):
-    class Meta:
-        broker = broker1
-
-    def perform(self, url):
-        wc(url)
-
-
-@dramatiq.actor(broker=broker1)
-def count_words(url):
-    wc(url)
-
+dramatiq.set_broker(broker1)
+from task1 import WordCounter
 
 WordCounter.send("http://example.com")
+
+from task2 import count_words
+
+dramatiq.set_broker(broker2)
 count_words.send("http://example.com")
